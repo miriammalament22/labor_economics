@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Gráficos y Visualización de Datos</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Miriam Malament" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/ninjutsu.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Gráficos y Visualización de Datos
+]
+.subtitle[
+## Retornos a la Educación
+]
+.author[
+### Miriam Malament
+]
+.institute[
+### Economía Laboral, UCEMA
+]
+
+---
+
+
+
+
+
+### Retornos a la educación en el mercado laboral argentino
+
+Uno de los principales desafíos de la economía laboral es demostrar los retornos a la inversión en capital humano. Como es muy difícil de medir el capital humano (¿Qué es el capital humano?), se suele tomar como proxy los años de educación. Entonces, a priori, más años de educación implicarían salarios mayores. 
+
+Esta clase tiene, fundamentalmente, dos objetivos: 
+
+- Introducirlos al mundo de la visualización de datos trabajando con plots, histogramas, boxplots, gráficos de densidad y gráficos de barras, entre otros. 
+  
+- Contestar las sigueintes preguntas aplicadas al mercado laboral de Argentina: 
+    - ¿En qué medida más años de educación implican salarios mayores? ¿Cambia la respuesta según sea mujere u hombre?
+    - ¿Se educan más las mujeres o los hombres?
+    - ¿Existe una brecha salarial? ¿Ganan más los hombres que las mujeres?
+    - ¿Qué precauciones hay que tomar al hacer este análisis?
+
+- _"La visualización es el proceso de hacer visibles los contrastes, ritmos y eventos que los datos expresan, que no podemos percibir cuando vienen en forma de áridas listas de números y categorías."_
+
+  
+- Queremos que los gráficos nos ayuden a interpretar información de manera visual
+
+
+---
+### Gráficos Básicos en R
+
+Rbase tiene algunos comandos genéricos para realizar gráficos, que se adaptan al tipo de información que se le pide graficar, por ejemplo:
+
+- plot()
+- hist()
+
+
+```r
+# iris es un set de datos clásico, que ya viene incorporado en R
+iris[1:10,]
+```
+
+```
+     Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+  1           5.1         3.5          1.4         0.2  setosa
+  2           4.9         3.0          1.4         0.2  setosa
+  3           4.7         3.2          1.3         0.2  setosa
+  4           4.6         3.1          1.5         0.2  setosa
+  5           5.0         3.6          1.4         0.2  setosa
+  6           5.4         3.9          1.7         0.4  setosa
+  7           4.6         3.4          1.4         0.3  setosa
+  8           5.0         3.4          1.5         0.2  setosa
+  9           4.4         2.9          1.4         0.2  setosa
+  10          4.9         3.1          1.5         0.1  setosa
+```
+---
+
+```r
+plot(iris)
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-2-1.png" width="100%" /&gt;
+---
+
+```r
+#Al especificar una variable, puedo ver el valor que toma cada uno de sus registros (Index)
+plot(iris$Sepal.Length,type = "p") # Un punto por cada valor
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-3-1.png" width="100%" /&gt;
+---
+
+```r
+plot(iris$Sepal.Length,type = "l") # Una linea que una cada valor
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-4-1.png" width="100%" /&gt;
+---
+
+```r
+plot(iris$Sepal.Length,type = "b") #Ambas
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-5-1.png" width="100%" /&gt;
+---
+
+```r
+hist(iris$Sepal.Length, col = "lightsalmon1", main = "Histograma")
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-6-1.png" width="100%" /&gt;
+---
+### El paquete ggplot2
+
+- Ggplot2 es uno de los paquetes principales de _tidyverse_
+
+
+- Tiene la misma lógica de "capas" y de apilamiento de sentencias, como venimos haciendo con el comando __%&gt;%__, pero ahora lo haremos con el símbolo __+__
+
+- Necesitamos estructurar los datos de forma "vertical" (¿pivot_longer suena familiar?), es decir, una columna por cada dimensión (variable) y una fila por cada observación. Estructurar bien los datos ahorra muchos dolores de cabeza.
+
+- ggplot tiene su sintaxis propia. La idea central es pensar los gráficos como una sucesión de capas, que se construyen una a la vez.    
+
+- El operador + nos permite incorporar nuevas capas al gráfico.
+
+- El comando ggplot() nos permite definir la fuente de __datos__ y las __variables__ que determinaran los ejes del grafico (x,y), así como el color y la forma de las líneas o puntos,etc. 
+- Las sucesivas capas nos permiten definir:
+   - Uno o más tipos de gráficos (de columnas, geom_col(), de línea, geom_line(), de puntos,geom_point(), boxplot, geom_boxplot())
+    - Títulos labs()
+    - Estilo del gráfico theme()
+    - Escalas de los ejes scale_y_continuous,scale_x_discrete 
+    - División en subconjuntos facet_wrap(),facet_grid()
+---
+
+### Librerías
+
+* Cargamos las librerías necesarias 
+
+
+```r
+library(tidyverse)
+library(questionr) # funciones para facilitar trabajo con encuestas
+library(eph)
+library(ggthemes)  # funciones para tunear gráficos
+library(GGally)
+```
+
+
+* Descargamos una base de la EPH del año 2021 con la función del paquete _eph_
+
+```r
+base &lt;- get_microdata(year = 2021,
+                      trimester = 4,
+                      type = "individual") 
+```
+
+---
+
+### Primeros pasos
+
+El primer paso antes de hacer un gráfico es saber qué quiero mostrar y con qué tipo de datos cuento
+
+Analicemos la variable:
+
+
+
+```r
+class(base$P21)
+```
+
+```
+  [1] "integer"
+```
+
+
+
+```r
+any(is.na(base$P21))
+```
+
+```
+  [1] FALSE
+```
+
+
+```r
+summary(base$P21)
+```
+
+```
+     Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+       -9       0       0   16837   25000 4000000
+```
+
+
+ Ahora sí, intentemos graficarlo
+
+---
+
+
+```r
+ggplot(data = base) +
+  aes(x = P21, 
+      weights = PONDIIO) +
+  geom_histogram()
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/ev-1.png" width="100%" /&gt;
+
+---
+### Saquemos los valores extremos, para poder analizar mejor gráficamente el resto de la distribución.
+
+
+
+```r
+base &lt;- base %&gt;% 
+  filter(P21 &gt; 0 &amp; P21 &lt; 300000)
+```
+
+Tiramos el summary nuevamente
+
+```r
+summary(base$P21)
+```
+
+```
+     Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      300   20000   40000   47039   60000  290000
+```
+
+---
+
+
+```r
+ggplot(data = base) +
+  aes(x = P21, 
+      weights = PONDIIO) +
+  geom_histogram(fill = "salmon", 
+                 color = "grey")
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-13-1.png" width="100%" /&gt;
+
+
+---
+class: middle, center, inverse
+
+## Gráficos de Boxplot
+
+### Probemos con otro tipo de gráfico que nos deje comparar, en este caso, para los distintos niveles educativos alcanzados
+
+---
+
+
+
+
+class: split-40
+count: false
+.column[.content[
+
+```r
+*ggplot(data = base)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_boxplot_1-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+* aes(x = NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_boxplot_2-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+* aes(y = P21)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_boxplot_3-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+* geom_boxplot()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_boxplot_4-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+* aes(group = NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_boxplot_5-1.png" width="100%" /&gt;
+]]
+
+
+---
+
+### ¿Qué pasó con las categorías? ¿Cómo las muestro?
+
+- Tal como se descarga la base de la página del INDEC, vemos que la variable __NIVEL_ED__ es de tipo "entero".
+
+
+```r
+class(base$NIVEL_ED)
+```
+
+```
+  [1] "integer"
+```
+
+
+```r
+table(base$NIVEL_ED)
+```
+
+```
+  
+     1    2    3    4    5    6    7 
+   560 2154 3018 5201 2437 4015   43
+```
+
+
+Transformemos, entonces, a _NIVEL_ED_ en una variable de tipo _factor_, asi podremos contar con las etiquetas e, incluso, reordenar sus categorías de forma ordinal
+  
+---
+
+
+```r
+base &lt;- base %&gt;% 
+  mutate(NIVEL_ED = factor(NIVEL_ED,
+                           levels = c(7,1:6),
+                           labels = c("Sin instruccion", "Primaria incompleta", "Primaria completa",
+                                      "Secundaria incompleta", "Secundaria completa",
+                                      "Sup. incompleto", "Sup. completo")))
+```
+
+Tiramos una frecuencia para chequear el trabajo hecho
+
+```r
+table(base$NIVEL_ED)
+```
+
+```
+  
+        Sin instruccion   Primaria incompleta     Primaria completa 
+                     43                   560                  2154 
+  Secundaria incompleta   Secundaria completa       Sup. incompleto 
+                   3018                  5201                  2437 
+          Sup. completo 
+                   4015
+```
+
+Ahora sí, con etiquetas en la variable, sumemos otros parámetros del gráfico
+
+---
+
+
+
+class: split-40
+count: false
+.column[.content[
+
+```r
+*ggplot(data = base)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_1-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+* aes(x = NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_2-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+* aes(y = P21)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_3-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+* geom_boxplot()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_4-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+* aes(group = NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_5-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+* aes(fill = NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_6-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+  aes(fill = NIVEL_ED) +  
+* theme_minimal()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_7-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+  aes(fill = NIVEL_ED) +  
+  theme_minimal() +  
+* labs(x = "Máximo nivel educativo alcanzado")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_8-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+  aes(fill = NIVEL_ED) +  
+  theme_minimal() +  
+  labs(x = "Máximo nivel educativo alcanzado") +  
+* labs(y = "Ingreso de la ocupación principal")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_9-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+  aes(fill = NIVEL_ED) +  
+  theme_minimal() +  
+  labs(x = "Máximo nivel educativo alcanzado") +  
+  labs(y = "Ingreso de la ocupación principal") +  
+* labs(title = "Boxplot del Ingreso de la Ocupación Principal por máximo nivel de estudios alcanzado")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_10-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+  aes(fill = NIVEL_ED) +  
+  theme_minimal() +  
+  labs(x = "Máximo nivel educativo alcanzado") +  
+  labs(y = "Ingreso de la ocupación principal") +  
+  labs(title = "Boxplot del Ingreso de la Ocupación Principal por máximo nivel de estudios alcanzado") +  
+* labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_11-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+  aes(fill = NIVEL_ED) +  
+  theme_minimal() +  
+  labs(x = "Máximo nivel educativo alcanzado") +  
+  labs(y = "Ingreso de la ocupación principal") +  
+  labs(title = "Boxplot del Ingreso de la Ocupación Principal por máximo nivel de estudios alcanzado") +  
+  labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC") +  
+* scale_y_continuous(limits = c(0, 140000))
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_12-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = NIVEL_ED) +  
+  aes(y = P21) +  
+  geom_boxplot() +  
+  aes(group = NIVEL_ED) +  
+  aes(fill = NIVEL_ED) +  
+  theme_minimal() +  
+  labs(x = "Máximo nivel educativo alcanzado") +  
+  labs(y = "Ingreso de la ocupación principal") +  
+  labs(title = "Boxplot del Ingreso de la Ocupación Principal por máximo nivel de estudios alcanzado") +  
+  labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC") +  
+  scale_y_continuous(limits = c(0, 140000)) +  
+* coord_flip()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g3_13-1.png" width="100%" /&gt;
+]]
+
+
+---
+class: middle, center, inverse
+
+## Gráficos de densidad
+
+### Probemos con otro tipo de gráfico, que ayude a comparar mejor (que es nuestro objetivo)
+
+---
+
+
+
+class: split-40
+count: false
+.column[.content[
+
+```r
+*ggplot(data = base)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_1-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+* aes(x = P21,weights = PONDIIO)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_2-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21,weights = PONDIIO) +  
+* geom_density()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_3-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21,weights = PONDIIO) +  
+  geom_density() +  
+* aes(group = NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_4-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21,weights = PONDIIO) +  
+  geom_density() +  
+  aes(group = NIVEL_ED) +  
+* aes(color = NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_5-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21,weights = PONDIIO) +  
+  geom_density() +  
+  aes(group = NIVEL_ED) +  
+  aes(color = NIVEL_ED) +  
+* theme_minimal()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_6-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21,weights = PONDIIO) +  
+  geom_density() +  
+  aes(group = NIVEL_ED) +  
+  aes(color = NIVEL_ED) +  
+  theme_minimal() +  
+* labs(x = "Ingreso de la ocupación principal")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_7-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21,weights = PONDIIO) +  
+  geom_density() +  
+  aes(group = NIVEL_ED) +  
+  aes(color = NIVEL_ED) +  
+  theme_minimal() +  
+  labs(x = "Ingreso de la ocupación principal") +  
+* labs(title = "Ingreso de la Ocupación Principal por máximo nivel de estudios alcanzado")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_8-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21,weights = PONDIIO) +  
+  geom_density() +  
+  aes(group = NIVEL_ED) +  
+  aes(color = NIVEL_ED) +  
+  theme_minimal() +  
+  labs(x = "Ingreso de la ocupación principal") +  
+  labs(title = "Ingreso de la Ocupación Principal por máximo nivel de estudios alcanzado") +  
+* labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g4_9-1.png" width="100%" /&gt;
+]]
+
+
+---
+class: middle, center, inverse
+
+## Gráficos de densidad
+
+### Que hacemos si queremos comparar las distribuciones del ingreso por sexo, contemplando el nivel educativo como variable diferenciadora
+  
+---
+
+Nuevamente, tenemos que editar primero una variable para poder trabajar con etiquetas. En este caso la variable de sexo:
+
+
+```r
+base &lt;- base %&gt;% 
+  mutate(CH04 = factor(CH04,
+                       levels = c(1, 2),
+                       labels = c("Varón", "Mujer")))
+table(base$CH04)
+```
+
+```
+  
+  Varón Mujer 
+   9656  7772
+```
+
+---
+
+
+
+
+class: split-40
+count: false
+.column[.content[
+
+```r
+*ggplot(data = base)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_1-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+* aes(x = P21)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_2-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+* geom_density()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_3-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+* aes(group = CH04)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_4-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+  aes(group = CH04) +  
+* aes(color = CH04)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_5-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+  aes(group = CH04) +  
+  aes(color = CH04) +  
+* theme_minimal()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_6-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+  aes(group = CH04) +  
+  aes(color = CH04) +  
+  theme_minimal() +  
+* labs(x = "Ingreso de la ocupación principal")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_7-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+  aes(group = CH04) +  
+  aes(color = CH04) +  
+  theme_minimal() +  
+  labs(x = "Ingreso de la ocupación principal") +  
+* labs(title = "Ingreso de la Ocupación Principal por Nivel educativo")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_8-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+  aes(group = CH04) +  
+  aes(color = CH04) +  
+  theme_minimal() +  
+  labs(x = "Ingreso de la ocupación principal") +  
+  labs(title = "Ingreso de la Ocupación Principal por Nivel educativo") +  
+* labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_9-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+  aes(group = CH04) +  
+  aes(color = CH04) +  
+  theme_minimal() +  
+  labs(x = "Ingreso de la ocupación principal") +  
+  labs(title = "Ingreso de la Ocupación Principal por Nivel educativo") +  
+  labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC") +  
+* facet_wrap(~ NIVEL_ED)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_10-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+ggplot(data = base) +  
+  aes(x = P21) +  
+  geom_density() +  
+  aes(group = CH04) +  
+  aes(color = CH04) +  
+  theme_minimal() +  
+  labs(x = "Ingreso de la ocupación principal") +  
+  labs(title = "Ingreso de la Ocupación Principal por Nivel educativo") +  
+  labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC") +  
+  facet_wrap(~ NIVEL_ED) +  
+* scale_x_continuous(limits = c(0, 120000))
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g5_11-1.png" width="100%" /&gt;
+]]
+
+
+---
+class: middle, center, inverse
+
+## Gráficos de Barras
+
+### Ahora queremos conocer cómo se distribuye la población en función del máximo nivel educativo alcanzado
+
+---
+
+- El paquete _eph_ tieene una función muy interesante que permite calcular tabulados. En este caso, podemos calcular qué porcentaje de los encuestados presenta cada nivel de educación. En este caso, el ponderador a utilizar es "PONDERA". 
+
+```r
+base %&gt;% 
+  calculate_tabulates(x = "NIVEL_ED",
+                      add.totals = "row",
+                      add.percentage = "col",
+                      weights = "PONDERA")
+```
+
+```
+                NIVEL_ED   Freq
+         Sin instruccion   0.3%
+     Primaria incompleta   2.9%
+       Primaria completa  12.0%
+   Secundaria incompleta  16.8%
+     Secundaria completa  27.7%
+         Sup. incompleto  16.0%
+           Sup. completo  24.2%
+                   Total 100.0%
+```
+A simple vista, el máximo nivel educativo se presentó en los encuestados con más frecuencia fue "Secundaria completa". Le sigue "Superior completo", "Secundaria incompleta" y "Superior incompleto". Menos del 3.5% no terminaron la primaria. 
+---
+
+¿Y si la cruzamos por sexo?
+
+
+```r
+base %&gt;% 
+  calculate_tabulates(x = "NIVEL_ED",
+                      y = "CH04",
+                      add.totals = "row",
+                      add.percentage = "col",
+                      weights = "PONDERA")
+```
+
+```
+           NIVEL_ED/CH04  Varón  Mujer
+         Sin instruccion   0.3%   0.2%
+     Primaria incompleta   3.6%   2.1%
+       Primaria completa  14.1%   9.4%
+   Secundaria incompleta  20.1%  12.6%
+     Secundaria completa  29.0%  26.1%
+         Sup. incompleto  14.4%  18.0%
+           Sup. completo  18.3%  31.5%
+                   Total 100.0% 100.0%
+```
+- Las mujeres con más frecuencia alcanzaron un nivel educativo "Superior completo" que los hombres, al igual que "Superior incompleto". 
+- Los varones con más frecuencia presentan "Secundario completo" y "Secundario incompleto" que las mujeres. 
+- Entonces, las mujeres se educan más que los hombres en promedio. Esto llama la atención ya que en promedio las mujeres ganan menos que los hombres, por lo que su retorno a la educación es menor, pero se educan más. 
+---
+
+
+
+
+
+
+
+class: split-40
+count: false
+.column[.content[
+
+```r
+*base
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 17,428 × 177
+     CODUSU      ANO4 TRIME…¹ NRO_H…² COMPO…³   H15 REGION MAS_500 AGLOM…⁴ PONDERA
+     &lt;chr&gt;      &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt; &lt;int&gt;  &lt;int&gt; &lt;chr&gt;     &lt;int&gt;   &lt;int&gt;
+   1 TQRMNOQQS…  2021       4       1       2     1     40 S            23     314
+   2 TQRMNOPPR…  2021       4       1       2     1     44 N            17     353
+   3 TQRMNOPPR…  2021       4       1       6     1     44 N            17     353
+   4 TQRMNORST…  2021       4       1       1     1     44 N            17     249
+   5 TQRMNOPSR…  2021       4       1       1     1     44 N            17     329
+   6 TQRMNOQWP…  2021       4       1       1     1     44 N            17     439
+   7 TQRMNORPR…  2021       4       1       4     1     42 N            26     130
+   8 TQRMNOQTU…  2021       4       1       1     1     42 N            26      96
+   9 TQRMNORVS…  2021       4       1       1     1     43 S             2     761
+  10 TQRMNORVS…  2021       4       1       2     1     43 S             2     761
+  # … with 17,418 more rows, 167 more variables: CH03 &lt;int&gt;, CH04 &lt;fct&gt;,
+  #   CH05 &lt;chr&gt;, CH06 &lt;int&gt;, CH07 &lt;int&gt;, CH08 &lt;int&gt;, CH09 &lt;int&gt;, CH10 &lt;int&gt;,
+  #   CH11 &lt;int&gt;, CH12 &lt;int&gt;, CH13 &lt;int&gt;, CH14 &lt;chr&gt;, CH15 &lt;int&gt;, CH15_COD &lt;int&gt;,
+  #   CH16 &lt;int&gt;, CH16_COD &lt;int&gt;, NIVEL_ED &lt;fct&gt;, ESTADO &lt;int&gt;, CAT_OCUP &lt;int&gt;,
+  #   CAT_INAC &lt;int&gt;, IMPUTA &lt;int&gt;, PP02C1 &lt;int&gt;, PP02C2 &lt;int&gt;, PP02C3 &lt;int&gt;,
+  #   PP02C4 &lt;int&gt;, PP02C5 &lt;int&gt;, PP02C6 &lt;int&gt;, PP02C7 &lt;int&gt;, PP02C8 &lt;int&gt;,
+  #   PP02E &lt;int&gt;, PP02H &lt;int&gt;, PP02I &lt;int&gt;, PP03C &lt;int&gt;, PP03D &lt;int&gt;, …
+  # ℹ Use `print(n = ...)` to see more rows, and `colnames()` to see all variable names
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+* select(NIVEL_ED, CH04, PONDERA)
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 17,428 × 3
+     NIVEL_ED              CH04  PONDERA
+     &lt;fct&gt;                 &lt;fct&gt;   &lt;int&gt;
+   1 Sup. completo         Varón     314
+   2 Secundaria completa   Mujer     353
+   3 Secundaria completa   Varón     353
+   4 Sup. incompleto       Mujer     249
+   5 Secundaria incompleta Mujer     329
+   6 Sup. incompleto       Varón     439
+   7 Sup. completo         Varón     130
+   8 Sup. completo         Mujer      96
+   9 Sup. completo         Varón     761
+  10 Secundaria completa   Mujer     761
+  # … with 17,418 more rows
+  # ℹ Use `print(n = ...)` to see more rows
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+  select(NIVEL_ED, CH04, PONDERA) %&gt;%  
+* group_by(NIVEL_ED)
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 17,428 × 3
+  # Groups:   NIVEL_ED [7]
+     NIVEL_ED              CH04  PONDERA
+     &lt;fct&gt;                 &lt;fct&gt;   &lt;int&gt;
+   1 Sup. completo         Varón     314
+   2 Secundaria completa   Mujer     353
+   3 Secundaria completa   Varón     353
+   4 Sup. incompleto       Mujer     249
+   5 Secundaria incompleta Mujer     329
+   6 Sup. incompleto       Varón     439
+   7 Sup. completo         Varón     130
+   8 Sup. completo         Mujer      96
+   9 Sup. completo         Varón     761
+  10 Secundaria completa   Mujer     761
+  # … with 17,418 more rows
+  # ℹ Use `print(n = ...)` to see more rows
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+  select(NIVEL_ED, CH04, PONDERA) %&gt;%  
+  group_by(NIVEL_ED) %&gt;%  
+* summarise(pob_tot = sum(PONDERA),
+*           pob_varon   = sum(PONDERA[CH04 == "Varón"]),
+*           pob_mujer   = sum(PONDERA[CH04 == "Mujer"]),
+*           varon = pob_varon/pob_tot * 100,
+*           mujer = pob_mujer/pob_tot * 100)
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 7 × 6
+    NIVEL_ED              pob_tot pob_varon pob_mujer varon mujer
+    &lt;fct&gt;                   &lt;int&gt;     &lt;int&gt;     &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+  1 Sin instruccion         26366     15951     10415  60.5  39.5
+  2 Primaria incompleta    272942    183819     89123  67.3  32.7
+  3 Primaria completa     1114315    719978    394337  64.6  35.4
+  4 Secundaria incompleta 1553673   1025886    527787  66.0  34.0
+  5 Secundaria completa   2569555   1480733   1088822  57.6  42.4
+  6 Sup. incompleto       1485923    736402    749521  49.6  50.4
+  7 Sup. completo         2248111    934585   1313526  41.6  58.4
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+  select(NIVEL_ED, CH04, PONDERA) %&gt;%  
+  group_by(NIVEL_ED) %&gt;%  
+  summarise(pob_tot = sum(PONDERA),  
+            pob_varon   = sum(PONDERA[CH04 == "Varón"]),  
+            pob_mujer   = sum(PONDERA[CH04 == "Mujer"]),  
+            varon = pob_varon/pob_tot * 100,  
+            mujer = pob_mujer/pob_tot * 100) %&gt;%  
+* select(NIVEL_ED, mujer, varon)
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 7 × 3
+    NIVEL_ED              mujer varon
+    &lt;fct&gt;                 &lt;dbl&gt; &lt;dbl&gt;
+  1 Sin instruccion        39.5  60.5
+  2 Primaria incompleta    32.7  67.3
+  3 Primaria completa      35.4  64.6
+  4 Secundaria incompleta  34.0  66.0
+  5 Secundaria completa    42.4  57.6
+  6 Sup. incompleto        50.4  49.6
+  7 Sup. completo          58.4  41.6
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+  select(NIVEL_ED, CH04, PONDERA) %&gt;%  
+  group_by(NIVEL_ED) %&gt;%  
+  summarise(pob_tot = sum(PONDERA),  
+            pob_varon   = sum(PONDERA[CH04 == "Varón"]),  
+            pob_mujer   = sum(PONDERA[CH04 == "Mujer"]),  
+            varon = pob_varon/pob_tot * 100,  
+            mujer = pob_mujer/pob_tot * 100) %&gt;%  
+  select(NIVEL_ED, mujer, varon) %&gt;%  
+* gather(key = sexo, value = valor, 2:3)
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 14 × 3
+     NIVEL_ED              sexo  valor
+     &lt;fct&gt;                 &lt;chr&gt; &lt;dbl&gt;
+   1 Sin instruccion       mujer  39.5
+   2 Primaria incompleta   mujer  32.7
+   3 Primaria completa     mujer  35.4
+   4 Secundaria incompleta mujer  34.0
+   5 Secundaria completa   mujer  42.4
+   6 Sup. incompleto       mujer  50.4
+   7 Sup. completo         mujer  58.4
+   8 Sin instruccion       varon  60.5
+   9 Primaria incompleta   varon  67.3
+  10 Primaria completa     varon  64.6
+  11 Secundaria incompleta varon  66.0
+  12 Secundaria completa   varon  57.6
+  13 Sup. incompleto       varon  49.6
+  14 Sup. completo         varon  41.6
+```
+]]
+
+
+---
+
+
+```r
+ggplot(data = base_graf) +
+  aes(x = NIVEL_ED, y = valor, fill = sexo) +
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-22-1.png" width="55%" style="display: block; margin: auto;" /&gt;
+
+---
+
+
+```r
+ggplot(data = base_graf) +
+  aes(x = NIVEL_ED, y = valor, fill = sexo) +
+  geom_bar(stat = "identity",
+           position = position_dodge())+
+  coord_flip()
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-23-1.png" width="55%" style="display: block; margin: auto;" /&gt;
+
+---
+
+
+```r
+ggplot(data = base_graf) +
+  aes(x = NIVEL_ED, y = valor, fill = sexo) +
+  geom_bar(stat = "identity",
+           position = position_dodge(),
+           color = "black")+
+  coord_flip()
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-24-1.png" width="55%" style="display: block; margin: auto;" /&gt;
+
+---
+
+
+```r
+ggplot(data = base_graf) +
+  aes(x = NIVEL_ED, y = valor, fill = sexo) +
+  geom_bar(stat = "identity",
+           position = position_dodge(),
+           color = "black") +
+  labs(title = "Máximo nivel de intrucción alcanzado por sexo",
+       x = "Máximo nivel de instrucción alcanzado",
+       y = "Porcentaje",
+       caption = "Fuente: EPH - INDEC. Total Aglomerados, 4 trimestre de 2021.") +
+  coord_flip()
+```
+
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/unnamed-chunk-25-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle, center, inverse
+
+## Gráficos de líneas
+
+### Veamos la evolución en el tiempo del ingreso promedio de la ocupación principal
+
+---
+
+* Descarguemos las 4 bases de datos del año 2021 con la función del paquete _eph_. Que tiene el objeto que nos trae la función *get_microdata*? 
+
+
+```r
+bases2021 &lt;- get_microdata(year = 2021,
+                      trimester = 1:4,
+                      type = "individual") 
+
+bases2021 
+```
+
+```
+  # A tibble: 4 × 5
+     year trimester wave  type       microdata              
+    &lt;dbl&gt;     &lt;int&gt; &lt;lgl&gt; &lt;fct&gt;      &lt;list&gt;                 
+  1  2021         1 NA    individual &lt;tibble [46,693 × 177]&gt;
+  2  2021         2 NA    individual &lt;tibble [47,085 × 177]&gt;
+  3  2021         3 NA    individual &lt;tibble [48,668 × 178]&gt;
+  4  2021         4 NA    individual &lt;tibble [50,154 × 177]&gt;
+```
+--
+
+El objeto es un _tibble_ de cuatro observaciones, y 5 variables. En la quinta variable están contenidos los dataframes propios a cada trimestre
+
+---
+
+* Seleccionamos unicamente la columna *microdata* y aplicamos la funcion **unnest** para apilar todos los dataframes en uno solo.
+
+
+```r
+bases2021.apiladas &lt;- bases2021 %&gt;%
+    select(microdata) %&gt;%
+    unnest(cols = c(microdata))
+
+nrow(bases2021.apiladas)
+```
+
+```
+  [1] 192600
+```
+--
+Tenemos un objeto con más de 192.000 registros! 
+
+---
+
+* Calculemos el ingreso de la ocupación principal promedio por sexo en cada trimestre
+
+
+```
+  # A tibble: 8 × 4
+  # Groups:   ANO4, TRIMESTRE [4]
+     ANO4 TRIMESTRE CH04  ingreso.promedio
+    &lt;int&gt;     &lt;int&gt; &lt;fct&gt;            &lt;dbl&gt;
+  1  2021         1 Varón           44310.
+  2  2021         1 Mujer           32895.
+  3  2021         2 Varón           51171.
+  4  2021         2 Mujer           36236.
+  5  2021         3 Varón           54639.
+  6  2021         3 Mujer           40805.
+  7  2021         4 Varón           63297.
+  8  2021         4 Mujer           45359.
+```
+
+class: split-40
+count: false
+.column[.content[
+
+```r
+*base.ingresos.prom &lt;- bases2021.apiladas %&gt;%
+* filter(P21&gt;0)
+```
+]]
+.column[.content[
+
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom &lt;- bases2021.apiladas %&gt;%  
+  filter(P21&gt;0) %&gt;%  
+* mutate(CH04 = factor(CH04,levels = c(1, 2),labels = c("Varón", "Mujer")))
+```
+]]
+.column[.content[
+
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom &lt;- bases2021.apiladas %&gt;%  
+  filter(P21&gt;0) %&gt;%  
+  mutate(CH04 = factor(CH04,levels = c(1, 2),labels = c("Varón", "Mujer"))) %&gt;%  
+* group_by(ANO4, TRIMESTRE, CH04)
+```
+]]
+.column[.content[
+
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom &lt;- bases2021.apiladas %&gt;%  
+  filter(P21&gt;0) %&gt;%  
+  mutate(CH04 = factor(CH04,levels = c(1, 2),labels = c("Varón", "Mujer"))) %&gt;%  
+  group_by(ANO4, TRIMESTRE, CH04) %&gt;%  
+* summarise(ingreso.promedio=weighted.mean(P21,PONDIIO))
+```
+]]
+.column[.content[
+
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom &lt;- bases2021.apiladas %&gt;%  
+  filter(P21&gt;0) %&gt;%  
+  mutate(CH04 = factor(CH04,levels = c(1, 2),labels = c("Varón", "Mujer"))) %&gt;%  
+  group_by(ANO4, TRIMESTRE, CH04) %&gt;%  
+  summarise(ingreso.promedio=weighted.mean(P21,PONDIIO))  
+*base.ingresos.prom
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 8 × 4
+  # Groups:   ANO4, TRIMESTRE [4]
+     ANO4 TRIMESTRE CH04  ingreso.promedio
+    &lt;int&gt;     &lt;int&gt; &lt;fct&gt;            &lt;dbl&gt;
+  1  2021         1 Varón           44310.
+  2  2021         1 Mujer           32895.
+  3  2021         2 Varón           51171.
+  4  2021         2 Mujer           36236.
+  5  2021         3 Varón           54639.
+  6  2021         3 Mujer           40805.
+  7  2021         4 Varón           63297.
+  8  2021         4 Mujer           45359.
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom &lt;- bases2021.apiladas %&gt;%  
+  filter(P21&gt;0) %&gt;%  
+  mutate(CH04 = factor(CH04,levels = c(1, 2),labels = c("Varón", "Mujer"))) %&gt;%  
+  group_by(ANO4, TRIMESTRE, CH04) %&gt;%  
+  summarise(ingreso.promedio=weighted.mean(P21,PONDIIO))  
+base.ingresos.prom  
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 8 × 4
+  # Groups:   ANO4, TRIMESTRE [4]
+     ANO4 TRIMESTRE CH04  ingreso.promedio
+    &lt;int&gt;     &lt;int&gt; &lt;fct&gt;            &lt;dbl&gt;
+  1  2021         1 Varón           44310.
+  2  2021         1 Mujer           32895.
+  3  2021         2 Varón           51171.
+  4  2021         2 Mujer           36236.
+  5  2021         3 Varón           54639.
+  6  2021         3 Mujer           40805.
+  7  2021         4 Varón           63297.
+  8  2021         4 Mujer           45359.
+```
+]]
+
+---
+
+
+
+class: split-40
+count: false
+.column[.content[
+
+```r
+*base.ingresos.prom
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 8 × 4
+  # Groups:   ANO4, TRIMESTRE [4]
+     ANO4 TRIMESTRE CH04  ingreso.promedio
+    &lt;int&gt;     &lt;int&gt; &lt;fct&gt;            &lt;dbl&gt;
+  1  2021         1 Varón           44310.
+  2  2021         1 Mujer           32895.
+  3  2021         2 Varón           51171.
+  4  2021         2 Mujer           36236.
+  5  2021         3 Varón           54639.
+  6  2021         3 Mujer           40805.
+  7  2021         4 Varón           63297.
+  8  2021         4 Mujer           45359.
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+*ggplot()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_2-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+* aes(x = TRIMESTRE,
+*     y = ingreso.promedio,
+*     group = CH04,
+*     color = CH04)
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_6-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+  aes(x = TRIMESTRE,  
+      y = ingreso.promedio,  
+      group = CH04,  
+      color = CH04) +  
+* geom_line()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_7-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+  aes(x = TRIMESTRE,  
+      y = ingreso.promedio,  
+      group = CH04,  
+      color = CH04) +  
+  geom_line() +  
+* geom_point()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_8-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+  aes(x = TRIMESTRE,  
+      y = ingreso.promedio,  
+      group = CH04,  
+      color = CH04) +  
+  geom_line() +  
+  geom_point() +  
+* theme_minimal()
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_9-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+  aes(x = TRIMESTRE,  
+      y = ingreso.promedio,  
+      group = CH04,  
+      color = CH04) +  
+  geom_line() +  
+  geom_point() +  
+  theme_minimal() +  
+* labs(x = "Trimestre")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_10-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+  aes(x = TRIMESTRE,  
+      y = ingreso.promedio,  
+      group = CH04,  
+      color = CH04) +  
+  geom_line() +  
+  geom_point() +  
+  theme_minimal() +  
+  labs(x = "Trimestre") +  
+* labs(y = "Ingreso de la ocupación principal")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_11-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+  aes(x = TRIMESTRE,  
+      y = ingreso.promedio,  
+      group = CH04,  
+      color = CH04) +  
+  geom_line() +  
+  geom_point() +  
+  theme_minimal() +  
+  labs(x = "Trimestre") +  
+  labs(y = "Ingreso de la ocupación principal") +  
+* labs(title = "Ingreso de la Ocupación Principal promedio por Sexo. Año 2021")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_12-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base.ingresos.prom %&gt;%  
+ggplot() +  
+  aes(x = TRIMESTRE,  
+      y = ingreso.promedio,  
+      group = CH04,  
+      color = CH04) +  
+  geom_line() +  
+  geom_point() +  
+  theme_minimal() +  
+  labs(x = "Trimestre") +  
+  labs(y = "Ingreso de la ocupación principal") +  
+  labs(title = "Ingreso de la Ocupación Principal promedio por Sexo. Año 2021") +  
+* labs(caption = "Fuente: Elaboración propia en base a EPH-INDEC")
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g6_13-1.png" width="100%" /&gt;
+]]
+
+---
+class: middle, center, inverse
+
+## Ggpairs
+
+### Una mirada rápida de las interacciones entre variables
+
+---
+
+* Como se relaciona la variable *P21* con el resto de variables de la base? La función **ggpairs** del paquete *GGaly nos permite una mirada rápida de la interacción entre las variables de nuestra base (seleccionamos algunas)
+
+
+```r
+base %&gt;% 
+  select(P21,EDAD = CH06,SEXO = CH04,NIVEL_ED) %&gt;% 
+ggpairs(mapping = aes(color = SEXO))+
+  theme(axis.text.x = element_text(angle = 45))
+```
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+*base
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 17,428 × 177
+     CODUSU      ANO4 TRIME…¹ NRO_H…² COMPO…³   H15 REGION MAS_500 AGLOM…⁴ PONDERA
+     &lt;chr&gt;      &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt; &lt;int&gt;  &lt;int&gt; &lt;chr&gt;     &lt;int&gt;   &lt;int&gt;
+   1 TQRMNOQQS…  2021       4       1       2     1     40 S            23     314
+   2 TQRMNOPPR…  2021       4       1       2     1     44 N            17     353
+   3 TQRMNOPPR…  2021       4       1       6     1     44 N            17     353
+   4 TQRMNORST…  2021       4       1       1     1     44 N            17     249
+   5 TQRMNOPSR…  2021       4       1       1     1     44 N            17     329
+   6 TQRMNOQWP…  2021       4       1       1     1     44 N            17     439
+   7 TQRMNORPR…  2021       4       1       4     1     42 N            26     130
+   8 TQRMNOQTU…  2021       4       1       1     1     42 N            26      96
+   9 TQRMNORVS…  2021       4       1       1     1     43 S             2     761
+  10 TQRMNORVS…  2021       4       1       2     1     43 S             2     761
+  # … with 17,418 more rows, 167 more variables: CH03 &lt;int&gt;, CH04 &lt;fct&gt;,
+  #   CH05 &lt;chr&gt;, CH06 &lt;int&gt;, CH07 &lt;int&gt;, CH08 &lt;int&gt;, CH09 &lt;int&gt;, CH10 &lt;int&gt;,
+  #   CH11 &lt;int&gt;, CH12 &lt;int&gt;, CH13 &lt;int&gt;, CH14 &lt;chr&gt;, CH15 &lt;int&gt;, CH15_COD &lt;int&gt;,
+  #   CH16 &lt;int&gt;, CH16_COD &lt;int&gt;, NIVEL_ED &lt;fct&gt;, ESTADO &lt;int&gt;, CAT_OCUP &lt;int&gt;,
+  #   CAT_INAC &lt;int&gt;, IMPUTA &lt;int&gt;, PP02C1 &lt;int&gt;, PP02C2 &lt;int&gt;, PP02C3 &lt;int&gt;,
+  #   PP02C4 &lt;int&gt;, PP02C5 &lt;int&gt;, PP02C6 &lt;int&gt;, PP02C7 &lt;int&gt;, PP02C8 &lt;int&gt;,
+  #   PP02E &lt;int&gt;, PP02H &lt;int&gt;, PP02I &lt;int&gt;, PP03C &lt;int&gt;, PP03D &lt;int&gt;, …
+  # ℹ Use `print(n = ...)` to see more rows, and `colnames()` to see all variable names
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+* select(P21,EDAD = CH06,SEXO = CH04,NIVEL_ED)
+```
+]]
+.column[.content[
+
+```
+  # A tibble: 17,428 × 4
+        P21  EDAD SEXO  NIVEL_ED             
+      &lt;int&gt; &lt;int&gt; &lt;fct&gt; &lt;fct&gt;                
+   1 120000    45 Varón Sup. completo        
+   2  75000    29 Mujer Secundaria completa  
+   3  80000    32 Varón Secundaria completa  
+   4  45000    44 Mujer Sup. incompleto      
+   5  30000    49 Mujer Secundaria incompleta
+   6  65000    32 Varón Sup. incompleto      
+   7  60000    42 Varón Sup. completo        
+   8  80000    58 Mujer Sup. completo        
+   9  80000    38 Varón Sup. completo        
+  10  80000    30 Mujer Secundaria completa  
+  # … with 17,418 more rows
+  # ℹ Use `print(n = ...)` to see more rows
+```
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+  select(P21,EDAD = CH06,SEXO = CH04,NIVEL_ED) %&gt;%  
+*ggpairs(mapping = aes(color = SEXO))
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g7_3-1.png" width="100%" /&gt;
+]]
+---
+class: split-40
+count: false
+.column[.content[
+
+```r
+base %&gt;%  
+  select(P21,EDAD = CH06,SEXO = CH04,NIVEL_ED) %&gt;%  
+ggpairs(mapping = aes(color = SEXO))+  
+* theme(axis.text.x = element_text(angle = 45))
+```
+]]
+.column[.content[
+&lt;img src="B.-Retornos-a-la-Educación_files/figure-html/output_g7_4-1.png" width="100%" /&gt;
+]]
+
+---
+# Conclusiones
+
+- En esta clase vimos cómo trabajar en R con varios tipos de gráficos: scatterplots, histogramas, boxplots, gráficos de densidad, de líneas, de barras y algunas técnicas más avanzadas de ggplots. De todas formas, este es solo el incio de data visualization. A continuación les dejo algunos links por si quieren seguir indagando: 
+  - https://www.data-to-viz.com/
+  - https://r-coder.com/graficos-r/
+- Los gráficos nos ayudan a contestar algunas complejas preguntas que nos planteamos al inicio de la clase: 
+  1. Efectivamente, **los salarios son mayores a medida que aumentan los años de educación**. 
+  2. Años de educación no solo implican salarios mayores, sino también menor desigualdad. Esto quiere decir que a mayor nivel de educación, menor es la diferencia de ingresos entre varones y mujeres. 
+  3. Las mujeres se educan más, pero su ingreso laboral es menor.
+  5. ¿Existe una brecha salarial? En principio, tan solo podemos afirmar que los hombres toman trabajos que pagan más y puede inferirse que trabajan más horas. De todas formas, es cierto que los hombres tienen salarios mejores pagos para **todo** nivel educativo. Las mujeres pueden trabajar menos horas o reciben transferencias no laborales.
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightLines": true,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
